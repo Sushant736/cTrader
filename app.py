@@ -23,6 +23,8 @@ def authorize(request: Request):
     code = request.query_params.get("code")
     if not code:
         return {"error": "Missing authorization code"}
+    return {"message": "Authorization code received", "code": code}
+
 
     client_id = os.getenv("CTRADER_CLIENT_ID")
     client_secret = os.getenv("CTRADER_CLIENT_SECRET")
