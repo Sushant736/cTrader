@@ -1,12 +1,13 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-import requests, os
+import requests
 
 app = FastAPI()
 
+# Enable CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # You can restrict this in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -20,13 +21,14 @@ def root():
 def authorize(request: Request):
     code = request.query_params.get("code")
     if not code:
-        return {"error": "Missing authorization code"}
+        return {"error": "Missing authorization code in query parameter"}
 
-    client_id = os.getenv("CTRADER_CLIENT_ID")
-    client_secret = os.getenv("CTRADER_CLIENT_SECRET")
+    # ✅ Your credentials
+    client_id = "11434_ZZJnszRiyYFBn7qoPMdizSF1bKtOgSOnrkN8ujxKhmQoktRhua"
+    client_secret = "rbH4Qrax259nAtf1EdHmKibpQL1Yp0bkdCPcq4fgTgGgAYannf"
     redirect_uri = "https://ctrader-production.up.railway.app/authorize"
 
-    token_url = "https://connect.spotware.com/open-api/token"
+    token_url = "https://connect.spotware.com/apps/token"
     payload = {
         "grant_type": "authorization_code",
         "code": code,
@@ -39,6 +41,7 @@ def authorize(request: Request):
 
     try:
         response = requests.post(token_url, data=payload, headers=headers)
+
         if response.status_code != 200:
             return {
                 "error": "Failed to get access token",
@@ -46,8 +49,15 @@ def authorize(request: Request):
                 "text": response.text
             }
 
-        tokens = response.json()
-        return {"message": "Authorization successful", "tokens": tokens}
+        return {
+            "message": "Authorization successful",
+            "tokens": response.json()
+        }
 
     except Exception as e:
-        return {"error": "Internal exception", "details": str(e)}
+        return {"error": "Internal error", "details": str(e)}
+
+# Optional placeholder to test route setup
+@app.get("/equity/{account_id}")
+def get_equity(account_id: str):
+    return {"message": f"Placeholder - Equity info for account {account_id} will be here"}
